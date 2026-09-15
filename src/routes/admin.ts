@@ -10,8 +10,9 @@ export const adminRouter = Router();
 adminRouter.use(authenticateToken);
 
 // Dashboard overview stats
-adminRouter.get('/stats', (_req, res) => {
-  const stats = submissionService.getStats();
+adminRouter.get('/stats', async (_req, res) => {
+  const stats = await submissionService.getStats();
+
   res.json({
     success: true,
     data: stats,
@@ -19,9 +20,14 @@ adminRouter.get('/stats', (_req, res) => {
 });
 
 // List all customer inquiries
-adminRouter.get('/customers', (req, res) => {
-  const status = typeof req.query.status === 'string' ? req.query.status : undefined;
-  const inquiries = submissionService.getCustomerInquiries({ status });
+adminRouter.get('/customers', async (req, res) => {
+  const status =
+    typeof req.query.status === 'string' ? req.query.status : undefined;
+
+  const inquiries = await submissionService.getCustomerInquiries(
+    status ? { status: status as any } : undefined
+  );
+
   res.json({
     success: true,
     count: inquiries.length,
@@ -29,30 +35,42 @@ adminRouter.get('/customers', (req, res) => {
   });
 });
 
-// Get customer inquiry by ID (with IDOR protection)
-adminRouter.get('/customers/:id', validateParams(IdParamSchema), (req, res) => {
-  const inquiry = submissionService.getCustomerInquiryById(req.params.id);
-  if (!inquiry) {
-    res.status(404).json({
-      success: false,
-      error: {
-        code: 'NOT_FOUND',
-        message: 'A megadott azonosítójú ügyfél kérelem nem található.',
-      },
-    });
-    return;
-  }
+// Get customer inquiry by ID
+adminRouter.get(
+  '/customers/:id',
+  validateParams(IdParamSchema),
+  async (req, res) => {
+    const inquiry = await submissionService.getCustomerInquiryById(
+      req.params.id
+    );
 
-  res.json({
-    success: true,
-    data: inquiry,
-  });
-});
+    if (!inquiry) {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'A megadott azonosítójú ügyfél kérelem nem található.',
+        },
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: inquiry,
+    });
+  }
+);
 
 // List all freelancer applications
-adminRouter.get('/freelancers', (req, res) => {
-  const status = typeof req.query.status === 'string' ? req.query.status : undefined;
-  const applications = submissionService.getFreelancerApplications({ status });
+adminRouter.get('/freelancers', async (req, res) => {
+  const status =
+    typeof req.query.status === 'string' ? req.query.status : undefined;
+
+  const applications = await submissionService.getFreelancerApplications(
+    status ? { status: status as any } : undefined
+  );
+
   res.json({
     success: true,
     count: applications.length,
@@ -61,57 +79,70 @@ adminRouter.get('/freelancers', (req, res) => {
 });
 
 // Get freelancer application by ID
-adminRouter.get('/freelancers/:id', validateParams(IdParamSchema), (req, res) => {
-  const application = submissionService.getFreelancerApplicationById(req.params.id);
-  if (!application) {
-    res.status(404).json({
-      success: false,
-      error: {
-        code: 'NOT_FOUND',
-        message: 'A megadott azonosítójú szakember jelentkezés nem található.',
-      },
-    });
-    return;
-  }
+adminRouter.get(
+  '/freelancers/:id',
+  validateParams(IdParamSchema),
+  async (req, res) => {
+    const application =
+      await submissionService.getFreelancerApplicationById(req.params.id);
 
-  res.json({
-    success: true,
-    data: application,
-  });
-});
+    if (!application) {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'A megadott azonosítójú szakember jelentkezés nem található.',
+        },
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: application,
+    });
+  }
+);
 
 // Download/View freelancer license document
-adminRouter.get('/freelancers/:id/license', validateParams(IdParamSchema), (req, res) => {
-  const application = submissionService.getFreelancerApplicationById(req.params.id);
-  if (!application || !application.licenseFileBase64) {
-    res.status(404).json({
-      success: false,
-      error: {
-        code: 'LICENSE_NOT_FOUND',
-        message: 'A szakemberhez nem tartozik feltöltött engedély dokumentum.',
+adminRouter.get(
+  '/freelancers/:id/license',
+  validateParams(IdParamSchema),
+  async (req, res) => {
+    const application =
+      await submissionService.getFreelancerApplicationById(req.params.id);
+
+    if (!application || !application.licenseFileBase64) {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'LICENSE_NOT_FOUND',
+          message: 'A szakemberhez nem tartozik feltöltött engedély dokumentum.',
+        },
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        fileName: application.licenseFileName,
+        fileType:
+          application.licenseFileType || 'application/octet-stream',
+        fileBase64: application.licenseFileBase64,
       },
     });
-    return;
   }
+);
 
-  res.json({
-    success: true,
-    data: {
-      fileName: application.licenseFileName,
-      fileType: application.licenseFileType || 'application/octet-stream',
-      fileBase64: application.licenseFileBase64,
-    },
-  });
-});
-
-// Update freelancer application status (Requires operator or admin role)
+// Update freelancer application status
 adminRouter.patch(
   '/freelancers/:id/status',
   requireRole('admin', 'operator'),
   validateParams(IdParamSchema),
   validateBody(UpdateStatusSchema),
-  (req, res) => {
-    const updated = submissionService.updateFreelancerStatus(
+  async (req, res) => {
+    const updated = await submissionService.updateFreelancerStatus(
       req.params.id,
       req.body.status as any,
       req.body.note
@@ -135,4 +166,3 @@ adminRouter.patch(
     });
   }
 );
-

@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import type { CustomerFormData, FreelancerFormData } from '../shared/schemas.js';
+import { getDb } from '../config/mongodb.js';
 
 export interface CustomerInquiry extends CustomerFormData {
   id: string;
@@ -17,10 +18,10 @@ export interface FreelancerApplication extends FreelancerFormData {
 }
 
 export class SubmissionService {
-  private customerInquiries = new Map<string, CustomerInquiry>();
-  private freelancerApplications = new Map<string, FreelancerApplication>();
 
-  createCustomerInquiry(data: CustomerFormData): CustomerInquiry {
+  async createCustomerInquiry(data: CustomerFormData): Promise<CustomerInquiry> {
+    const db = await getDb();
+
     const id = `req_${crypto.randomBytes(8).toString('hex')}`;
     const now = new Date().toISOString();
 
@@ -32,23 +33,40 @@ export class SubmissionService {
       updatedAt: now,
     };
 
-    this.customerInquiries.set(id, record);
+    await db.collection<CustomerInquiry>('customerInquiries').insertOne(record);
+
     return record;
   }
 
-  getCustomerInquiries(filter?: { status?: string }): CustomerInquiry[] {
-    const list = Array.from(this.customerInquiries.values());
-    if (filter?.status) {
-      return list.filter((i) => i.status === filter.status);
-    }
-    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  async getCustomerInquiries(filter?: { status?: CustomerInquiry['status'] }): Promise<CustomerInquiry[]> {
+    const db = await getDb();
+
+    const query = filter?.status
+      ? { status: filter.status }
+      : {};
+
+    return db
+      .collection<CustomerInquiry>('customerInquiries')
+      .find(query)
+      .sort({ createdAt: -1 })
+      .toArray();
   }
 
-  getCustomerInquiryById(id: string): CustomerInquiry | undefined {
-    return this.customerInquiries.get(id);
+  async getCustomerInquiryById(id: string): Promise<CustomerInquiry | undefined> {
+    const db = await getDb();
+
+    const record = await db
+      .collection<CustomerInquiry>('customerInquiries')
+      .findOne({ id });
+
+    return record ?? undefined;
   }
 
-  createFreelancerApplication(data: FreelancerFormData): FreelancerApplication {
+  async createFreelancerApplication(
+    data: FreelancerFormData
+  ): Promise<FreelancerApplication> {
+    const db = await getDb();
+
     const id = `fl_${crypto.randomBytes(8).toString('hex')}`;
     const now = new Date().toISOString();
 
@@ -60,59 +78,102 @@ export class SubmissionService {
       updatedAt: now,
     };
 
-    this.freelancerApplications.set(id, record);
+    await db
+      .collection<FreelancerApplication>('freelancerApplications')
+      .insertOne(record);
+
     return record;
   }
 
-  getFreelancerApplications(filter?: { status?: string }): FreelancerApplication[] {
-    const list = Array.from(this.freelancerApplications.values());
-    if (filter?.status) {
-      return list.filter((a) => a.status === filter.status);
-    }
-    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  async getFreelancerApplications(
+    filter?: { status?: FreelancerApplication['status'] }
+  ): Promise<FreelancerApplication[]> {
+    const db = await getDb();
+
+    const query = filter?.status
+      ? { status: filter.status }
+      : {};
+
+    return db
+      .collection<FreelancerApplication>('freelancerApplications')
+      .find(query)
+      .sort({ createdAt: -1 })
+      .toArray();
   }
 
-  getFreelancerApplicationById(id: string): FreelancerApplication | undefined {
-    return this.freelancerApplications.get(id);
+  async getFreelancerApplicationById(
+    id: string
+  ): Promise<FreelancerApplication | undefined> {
+    const db = await getDb();
+
+    const record = await db
+      .collection<FreelancerApplication>('freelancerApplications')
+      .findOne({ id });
+
+    return record ?? undefined;
   }
 
-  updateFreelancerStatus(
+  async updateFreelancerStatus(
     id: string,
     status: 'pending' | 'approved' | 'rejected',
     note?: string
-  ): FreelancerApplication | undefined {
-    const record = this.freelancerApplications.get(id);
-    if (!record) return undefined;
+  ): Promise<FreelancerApplication | undefined> {
+    const db = await getDb();
 
-    record.status = status;
-    record.updatedAt = new Date().toISOString();
+    const update: Record<string, unknown> = {
+      status,
+      updatedAt: new Date().toISOString(),
+    };
+
     if (note !== undefined) {
-      record.adminNotes = note;
+      update.adminNotes = note;
     }
 
-    this.freelancerApplications.set(id, record);
-    return record;
+    const result = await db
+      .collection<FreelancerApplication>('freelancerApplications')
+      .findOneAndUpdate(
+        { id },
+        { $set: update },
+        { returnDocument: 'after' }
+      );
+
+    return result ?? undefined;
   }
 
-  getStats() {
-    const customers = Array.from(this.customerInquiries.values());
-    const freelancers = Array.from(this.freelancerApplications.values());
+  async getStats() {
+    const db = await getDb();
+
+    const [
+      totalCustomerInquiries,
+      pendingCustomerInquiries,
+      totalFreelancerApplications,
+      pendingFreelancers,
+      approvedFreelancers,
+    ] = await Promise.all([
+      db.collection('customerInquiries').countDocuments(),
+      db.collection('customerInquiries').countDocuments({ status: 'pending' }),
+      db.collection('freelancerApplications').countDocuments(),
+      db.collection('freelancerApplications').countDocuments({ status: 'pending' }),
+      db.collection('freelancerApplications').countDocuments({ status: 'approved' }),
+    ]);
 
     return {
-      totalCustomerInquiries: customers.length,
-      pendingCustomerInquiries: customers.filter((c) => c.status === 'pending').length,
-      totalFreelancerApplications: freelancers.length,
-      pendingFreelancers: freelancers.filter((f) => f.status === 'pending').length,
-      approvedFreelancers: freelancers.filter((f) => f.status === 'approved').length,
+      totalCustomerInquiries,
+      pendingCustomerInquiries,
+      totalFreelancerApplications,
+      pendingFreelancers,
+      approvedFreelancers,
     };
   }
 
-  // Clear for test environment resets
-  clearAll() {
-    this.customerInquiries.clear();
-    this.freelancerApplications.clear();
+  async clearAll() {
+    const db = await getDb();
+
+    await Promise.all([
+      db.collection('customerInquiries').deleteMany({}),
+      db.collection('freelancerApplications').deleteMany({}),
+    ]);
   }
 }
 
 export const submissionService = new SubmissionService();
-

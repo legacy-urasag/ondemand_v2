@@ -1,9 +1,10 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-dotenv.config();
+dotenv.config({ path: ['.env.local', '.env'] });
 
 const EnvSchema = z.object({
+  MONGODB_URI: z.string().min(1),
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   APP_URL: z.string().url().default('http://localhost:3000'),

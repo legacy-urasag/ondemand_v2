@@ -1,3 +1,4 @@
+import { env } from '../config/env.js';
 import { Router } from 'express';
 import { CustomerFormSchema, FreelancerFormSchema, VALID_JOB_TYPES, slugify } from '../shared/schemas.js';
 import { validateBody } from '../middleware/validate.js';
@@ -45,7 +46,7 @@ publicRouter.post(
   formSubmissionRateLimiter,
   validateBody(CustomerFormSchema),
   async (req, res) => {
-    const inquiry = submissionService.createCustomerInquiry(req.body);
+    const inquiry = await submissionService.createCustomerInquiry(req.body);
 
     res.status(201).json({
       success: true,
@@ -65,7 +66,7 @@ publicRouter.post(
   formSubmissionRateLimiter,
   validateBody(FreelancerFormSchema),
   async (req, res) => {
-    const application = submissionService.createFreelancerApplication(req.body);
+    const application = await submissionService.createFreelancerApplication(req.body);
 
     res.status(201).json({
       success: true,
