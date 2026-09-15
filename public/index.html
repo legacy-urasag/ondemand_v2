@@ -145,6 +145,7 @@
             border-bottom: 1px solid rgba(229,231,235,0.6);
             transition: all .3s ease;
         }
+        main { padding-top: 72px; }
         .nav { display: flex; align-items: center; justify-content: space-between; height: 72px; }
                 .logo {
             font-weight: 800; 
@@ -916,9 +917,10 @@
             /* Container and Spacing */
             .container { padding: 0 16px; }
             .section { padding: 64px 0; }
+            main { padding-top: 0; }
             
             /* Hero Section */
-            .hero { padding-top: 120px; }
+            .hero { padding-top: 72px; }
             .hero .container { gap: 24px; padding-top: 40px; }
             .hero h1 { font-size: clamp(28px, 8vw, 40px); }
             .subtitle { font-size: 1rem; }
@@ -1156,11 +1158,6 @@
     </style>
 </head>
 <body>
-    <!-- Skip Links for Accessibility -->
-    <a href="#main-content" class="skip-link">Ugrás a főtartalomhoz</a>
-    <a href="#customer-form" class="skip-link">Ugrás az ügyfél űrlaphoz</a>
-    <a href="#freelancer-form" class="skip-link">Ugrás a szakember űrlaphoz</a>
-    
     <!-- Header -->
     <header class="header">
         <nav class="nav container">
