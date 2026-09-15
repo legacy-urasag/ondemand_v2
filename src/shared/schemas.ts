@@ -8,7 +8,6 @@ export const VALID_JOB_TYPES = [
   'Gázszerelő',
   'Fűtésszerelő (vagy gépész)',
   'Festő-mázoló',
-  'Burkoló (csempéző, parkettás)',
   'Lakatos',
   'Hegesztő',
   'Kertépítő',
