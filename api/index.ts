@@ -1,3 +1,5 @@
 import { createServer } from '../src/server.js';
 
-export default createServer();
+const app = createServer();
+
+export default app;
