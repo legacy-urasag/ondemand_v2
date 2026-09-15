@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnDemand – Adminisztrációs Portál</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --color-bg: #f8fafc;
+            --color-surface: #ffffff;
+            --color-muted: #64748b;
+            --color-text: #0f172a;
+            --color-primary: #2563eb;
+            --color-primary-600: #1d4ed8;
+            --color-border: #e2e8f0;
+            --color-success: #16a34a;
+            --color-warning: #d97706;
+            --color-danger: #dc2626;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        /* Navigation Header */
+        .admin-nav {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .admin-logo {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--color-primary), #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-logo span {
+            font-size: 13px;
+            font-weight: 600;
+            background: #eff6ff;
+            color: var(--color-primary);
+            padding: 2px 8px;
+            border-radius: 6px;
+            -webkit-text-fill-color: initial;
+        }
+        .user-menu { display: flex; align-items: center; gap: 16px; }
+        .user-badge {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-muted);
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: var(--color-primary); color: white; }
+        .btn-primary:hover { background: var(--color-primary-600); }
+        .btn-outline { background: white; border-color: var(--color-border); color: var(--color-text); }
+        .btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .btn-success { background: var(--color-success); color: white; }
+        .btn-danger { background: var(--color-danger); color: white; }
+
+        /* Login Card */
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+        }
+        .login-card {
+            background: var(--color-surface);
+            padding: 36px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            max-width: 420px;
+        }
+        .login-card h2 { font-size: 22px; margin-bottom: 8px; }
+        .login-card p { color: var(--color-muted); font-size: 14px; margin-bottom: 24px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .form-control:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: var(--color-danger);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; }
+        .tab-btn {
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: var(--color-text); background: #f1f5f9; }
+        .tab-btn.active { color: var(--color-primary); background: #eff6ff; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--color-surface);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-card .label { font-size: 13px; color: var(--color-muted); font-weight: 500; }
+        .stat-card .value { font-size: 28px; font-weight: 800; color: var(--color-text); margin-top: 6px; }
+
+        /* Tables */
+        .table-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .table-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .table-header h3 { font-size: 16px; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+        th { background: #f8fafc; padding: 12px 16px; font-weight: 600; color: var(--color-muted); border-bottom: 1px solid var(--color-border); }
+        td { padding: 12px 16px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fbfcfe; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-approved { background: #dcfce7; color: #166534; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+        .badge-emergency { background: #fee2e2; color: #991b1b; }
+        .badge-urgent { background: #fef3c7; color: #92400e; }
+        .badge-normal { background: #e0f2fe; color: #0369a1; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-md);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--color-muted); }
+    </style>
+</head>
+<body>
+    <header class="admin-nav">
+        <a href="/" class="admin-logo">
+            <i class="fas fa-tools"></i> OnDemand <span>Admin</span>
+        </a>
+        <div class="user-menu" id="auth-controls" style="display: none;">
+            <span class="user-badge" id="current-user-badge"><i class="fas fa-user-circle"></i> admin (admin)</span>
+            <a href="/" class="btn btn-outline btn-sm"><i class="fas fa-external-link-alt"></i> Weboldal</a>
+            <button class="btn btn-outline btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Kijelentkezés</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Login View -->
+        <div id="login-view" class="login-wrapper">
+            <div class="login-card">
+                <h2>Adminisztrátori belépés</h2>
+                <p>Jelentkezzen be a beérkezett feladatok és szakember jelentkezések kezeléséhez.</p>
+                <div class="alert-error" id="login-error"></div>
+                <form id="admin-login-form">
+                    <div class="form-group">
+                        <label for="admin-user">Felhasználónév</label>
+                        <input type="text" id="admin-user" class="form-control" placeholder="admin" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-pass">Jelszó</label>
+                        <input type="password" id="admin-pass" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;" id="login-submit-btn">
+                        <i class="fas fa-sign-in-alt"></i> Bejelentkezés
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard View (Hidden until authenticated) -->
+        <div id="dashboard-view" style="display: none;">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('overview')"><i class="fas fa-chart-pie"></i> Áttekintés</button>
+                <button class="tab-btn" onclick="switchTab('customers')"><i class="fas fa-users"></i> Ügyfél bejelentések</button>
+                <button class="tab-btn" onclick="switchTab('freelancers')"><i class="fas fa-hard-hat"></i> Szakemberek</button>
+            </div>
+
+            <!-- Tab: Overview -->
+            <div id="tab-overview" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="label">Összes Ügyfél Kérelem</div>
+                        <div class="value" id="stat-total-customers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Függőben Lévő Feladatok</div>
+                        <div class="value" id="stat-pending-customers" style="color: var(--color-warning);">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Összes Szakember Jelentkezés</div>
+                        <div class="value" id="stat-total-freelancers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Jóváhagyott Szakemberek</div>
+                        <div class="value" id="stat-approved-freelancers" style="color: var(--color-success);">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Customers -->
+            <div id="tab-customers" class="tab-content" style="display: none;">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Beérkezett Ügyfél Megkeresések</h3>
+                        <button class="btn btn-outline btn-sm" onclick="loadCustomers()"><i class="fas fa-sync"></i> Frissítés</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Név</th>
+                                    <th>Telefon</th>
+                                    <th>Helyszín</th>
+                                    <th>Szakma</th>
+                                    <th>Sürgősség</th>
+                                    <th>Dátum</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customers-table-body">
+                                <tr><td colspan="7" style="text-align: center; color: var(--color-muted);">Betöltés...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Freelancers -->
+            <div id="tab-freelancers" class="tab-content" style="display: none;">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Szakember Jelentkezések</h3>
+                        <button class="btn btn-outline btn-sm" onclick="loadFreelancers()"><i class="fas fa-sync"></i> Frissítés</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Név</th>
+                                    <th>Telefon / Email</th>
+                                    <th>Szakma</th>
+                                    <th>Tapasztalat</th>
+                                    <th>Státusz</th>
+                                    <th>Engedély</th>
+                                    <th>Műveletek</th>
+                                </tr>
+                            </thead>
+                            <tbody id="freelancers-table-body">
+                                <tr><td colspan="8" style="text-align: center; color: var(--color-muted);">Betöltés...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- License Modal -->
+    <div class="modal" id="license-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="license-modal-title">Engedély Dokumentum</h3>
+                <button class="modal-close" onclick="closeLicenseModal()">&times;</button>
+            </div>
+            <div id="license-modal-body">
+                <p>Dokumentum betöltése...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        function getToken() {
+            return sessionStorage.getItem('ondemand_token');
+        }
+
+        function setToken(token) {
+            sessionStorage.setItem('ondemand_token', token);
+        }
+
+        function clearToken() {
+            sessionStorage.removeItem('ondemand_token');
+        }
+
+        // Initialize view based on stored session
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = getToken();
+            if (token) {
+                await checkSession();
+            }
+        });
+
+        async function checkSession() {
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    showDashboard(data.data);
+                } else {
+                    clearToken();
+                    showLogin();
+                }
+            } catch {
+                clearToken();
+                showLogin();
+            }
+        }
+
+        function showDashboard(user) {
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'block';
+            document.getElementById('auth-controls').style.display = 'flex';
+            document.getElementById('current-user-badge').innerHTML = `<i class="fas fa-user-shield"></i> ${user.username} (${user.role})`;
+            loadStats();
+            loadCustomers();
+            loadFreelancers();
+        }
+
+        function showLogin() {
+            document.getElementById('login-view').style.display = 'flex';
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('auth-controls').style.display = 'none';
+        }
+
+        function logout() {
+            clearToken();
+            showLogin();
+        }
+
+        // Handle Login Submission
+        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('login-submit-btn');
+            const errorAlert = document.getElementById('login-error');
+            errorAlert.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Bejelentkezés...';
+
+            const username = document.getElementById('admin-user').value.trim();
+            const password = document.getElementById('admin-pass').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    const msg = data?.error?.message || 'Helytelen felhasználónév vagy jelszó.';
+                    errorAlert.textContent = msg;
+                    errorAlert.style.display = 'block';
+                    return;
+                }
+
+                setToken(data.data.token);
+                showDashboard(data.data.user);
+            } catch (err) {
+                errorAlert.textContent = 'Nem sikerült kapcsolódni a szerverhez.';
+                errorAlert.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Bejelentkezés';
+            }
+        });
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById(`tab-${tabId}`).style.display = 'block';
+
+            if (tabId === 'overview') loadStats();
+            if (tabId === 'customers') loadCustomers();
+            if (tabId === 'freelancers') loadFreelancers();
+        }
+
+        // Load Stats
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (!res.ok) return;
+                const body = await res.json();
+                const d = body.data;
+                document.getElementById('stat-total-customers').textContent = d.totalCustomerInquiries;
+                document.getElementById('stat-pending-customers').textContent = d.pendingCustomerInquiries;
+                document.getElementById('stat-total-freelancers').textContent = d.totalFreelancerApplications;
+                document.getElementById('stat-approved-freelancers').textContent = d.approvedFreelancers;
+            } catch (err) {
+                console.error('Failed to load stats:', err);
+            }
+        }
+
+        // Load Customers
+        async function loadCustomers() {
+            const tbody = document.getElementById('customers-table-body');
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/customers`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (!res.ok) return;
+                const body = await res.json();
+                const items = body.data;
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--color-muted);">Nincs megjeleníthető ügyfél bejelentés.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(c => `
+                    <tr>
+                        <td><code>${c.id}</code></td>
+                        <td><strong>${escapeHtml(c.name)}</strong></td>
+                        <td><a href="tel:${escapeHtml(c.phone)}">${escapeHtml(c.phone)}</a></td>
+                        <td>${escapeHtml(c.location)}</td>
+                        <td>${escapeHtml(c.jobTypes.join(', '))}</td>
+                        <td><span class="badge badge-${c.urgency}">${c.urgency}</span></td>
+                        <td>${new Date(c.createdAt).toLocaleDateString('hu-HU')}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--color-danger);">Hiba az adatok betöltésekor.</td></tr>';
+            }
+        }
+
+        // Load Freelancers
+        async function loadFreelancers() {
+            const tbody = document.getElementById('freelancers-table-body');
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/freelancers`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (!res.ok) return;
+                const body = await res.json();
+                const items = body.data;
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--color-muted);">Nincs megjeleníthető szakember jelentkezés.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(f => `
+                    <tr>
+                        <td><code>${f.id}</code></td>
+                        <td><strong>${escapeHtml(f.name)}</strong></td>
+                        <td>
+                            <div><a href="tel:${escapeHtml(f.phone)}">${escapeHtml(f.phone)}</a></div>
+                            <div style="font-size:11px; color:var(--color-muted);">${escapeHtml(f.email)}</div>
+                        </td>
+                        <td>${escapeHtml(f.trades.join(', '))}</td>
+                        <td>${escapeHtml(f.experience)} év</td>
+                        <td><span class="badge badge-${f.status}">${f.status}</span></td>
+                        <td>
+                            ${f.licenseFileName && f.licenseFileName !== 'Nincs fájl' 
+                                ? `<button class="btn btn-outline btn-sm" onclick="viewLicense('${f.id}')"><i class="fas fa-file-alt"></i> Megnyitás</button>`
+                                : '<span style="color:var(--color-muted);">Nincs</span>'}
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn btn-success btn-sm" onclick="updateFreelancerStatus('${f.id}', 'approved')" title="Jóváhagyás"><i class="fas fa-check"></i></button>
+                                <button class="btn btn-danger btn-sm" onclick="updateFreelancerStatus('${f.id}', 'rejected')" title="Elutasítás"><i class="fas fa-times"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--color-danger);">Hiba a szakemberek betöltésekor.</td></tr>';
+            }
+        }
+
+        async function updateFreelancerStatus(id, status) {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/freelancers/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+                if (res.ok) {
+                    loadFreelancers();
+                    loadStats();
+                } else {
+                    alert('A státusz frissítése nem sikerült.');
+                }
+            } catch {
+                alert('Hálózati hiba a státusz módosításakor.');
+            }
+        }
+
+        async function viewLicense(id) {
+            const modal = document.getElementById('license-modal');
+            const body = document.getElementById('license-modal-body');
+            modal.classList.add('show');
+            body.innerHTML = '<p>Engedély betöltése...</p>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/freelancers/${id}/license`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (!res.ok) {
+                    body.innerHTML = '<p style="color:var(--color-danger);">Nem található engedély ehhez a szakemberhez.</p>';
+                    return;
+                }
+                const data = await res.json();
+                const file = data.data;
+
+                if (file.fileBase64 && file.fileBase64.startsWith('data:image')) {
+                    body.innerHTML = `
+                        <p style="margin-bottom:12px;"><strong>Fájlnév:</strong> ${escapeHtml(file.fileName)}</p>
+                        <img src="${file.fileBase64}" alt="Engedély" style="max-width:100%; border-radius:8px; border:1px solid var(--color-border);">
+                    `;
+                } else {
+                    body.innerHTML = `
+                        <p><strong>Fájlnév:</strong> ${escapeHtml(file.fileName)}</p>
+                        <p><strong>Típus:</strong> ${escapeHtml(file.fileType)}</p>
+                        <div style="margin-top:16px;">
+                            <a href="${file.fileBase64 || '#'}" download="${file.fileName}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-download"></i> Letöltés
+                            </a>
+                        </div>
+                    `;
+                }
+            } catch {
+                body.innerHTML = '<p style="color:var(--color-danger);">Hiba történt a dokumentum lekérése során.</p>';
+            }
+        }
+
+        function closeLicenseModal() {
+            document.getElementById('license-modal').classList.remove('show');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
