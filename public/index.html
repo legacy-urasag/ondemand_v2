@@ -55,102 +55,57 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js" defer></script>
     
     <!-- Structured Data / JSON-LD -->
-    <script type="application/ld+json">
-    [
-      {
-        "@context": "https://schema.org",
-        "@type": "HomeAndConstructionBusiness",
-        "name": "OnDemand",
-        "description": "Ellenőrzött villanyszerelők, vízvezetékszerelők és mesteremberek Budapesten. Gyors kiszállás, átlátható árak.",
-        "url": "https://ondemand.hu/",
-        "telephone": "+36 70 881 6665",
-        "email": "ondemandkft@gmail.com",
-        "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "Budapest",
-            "addressCountry": "HU"
-        },
-        "areaServed": {
-            "@type": "City",
-            "name": "Budapest"
-        },
-        "serviceType": [
-            "Villanyszerelés",
-            "Vízvezetékszerelés",
-            "Gázszerelés",
-            "Fűtésszerelés",
-            "Klímaszerelés",
-            "Festés-mázolás",
-            "Burkolás"
-        ],
-        "priceRange": "$$",
-        "openingHours": "Mo-Su 00:00-23:59",
-        "logo": "https://ondemand.hu/logo.png",
-        "sameAs": [
-            "https://www.facebook.com/ondemandhu",
-            "https://www.instagram.com/ondemandhu"
-        ],
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "ratingCount": "150",
-            "bestRating": "5"
-        },
-        "hasOfferCatalog": {
-            "@type": "OfferCatalog",
-            "name": "Szakember szolgáltatások",
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "HomeAndConstructionBusiness",
+            "name": "OnDemand",
+            "description": "Ellenőrzött villanyszerelők, vízvezetékszerelők és mesteremberek Budapesten. Gyors kiszállás, átlátható árak.",
+            "url": "https://ondemand.hu/",
+            "telephone": "+36 70 881 6665",
+            "email": "ondemandkft@gmail.com",
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Budapest",
+                "addressCountry": "HU"
+            },
+            "areaServed": {
+                "@type": "City",
+                "name": "Budapest"
+            },
+            "serviceType": ["Villanyszerelés", "Vízvezetékszerelés", "Gázszerelés", "Fűtésszerelés", "Klímaszerelés", "Festés-mázolás", "Burkolás"],
+            "priceRange": "$$",
+            "openingHours": "Mo-Su 00:00-23:59",
+            "logo": "https://ondemand.hu/logo.png",
+            "sameAs": ["https://www.facebook.com/ondemandhu", "https://www.instagram.com/ondemandhu"],
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": "4.9",
+                "ratingCount": "150",
+                "bestRating": "5"
+            },
+            "hasOfferCatalog": {
+                "@type": "OfferCatalog",
+                "name": "Szakember szolgáltatások",
+                "itemListElement": [
+                    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Villanyszerelés", "description": "Professzionális villanyszerelési szolgáltatások és hibaelhárítás" } },
+                    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Vízvezetékszerelés", "description": "Megbízható vízvezetékszerelési munkák és csőtörés elhárítás" } }
+                ]
+            }
+        }
+        </script>
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
             "itemListElement": [
-                {
-                    "@type": "Offer",
-                    "itemOffered": {
-                        "@type": "Service",
-                        "name": "Villanyszerelés",
-                        "description": "Professzionális villanyszerelési szolgáltatások és hibaelhárítás"
-                    }
-                },
-                {
-                    "@type": "Offer",
-                    "itemOffered": {
-                        "@type": "Service",
-                        "name": "Vízvezetékszerelés",
-                        "description": "Megbízható vízvezetékszerelési munkák és csőtörés elhárítás"
-                    }
-                }
+                { "@type": "ListItem", "position": 1, "name": "Főoldal", "item": "https://ondemand.hu/" },
+                { "@type": "ListItem", "position": 2, "name": "Hogyan működik", "item": "https://ondemand.hu/#how" },
+                { "@type": "ListItem", "position": 3, "name": "Szakembereknek", "item": "https://ondemand.hu/#freelancers" },
+                { "@type": "ListItem", "position": 4, "name": "Ajánlatkérés", "item": "https://ondemand.hu/#contact" }
             ]
         }
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Főoldal",
-            "item": "https://ondemand.hu/"
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Hogyan működik",
-            "item": "https://ondemand.hu/#how"
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "name": "Szakembereknek",
-            "item": "https://ondemand.hu/#freelancers"
-          },
-          {
-            "@type": "ListItem",
-            "position": 4,
-            "name": "Ajánlatkérés",
-            "item": "https://ondemand.hu/#contact"
-          }
-        ]
-      }
-    ]
-    </script>
+        </script>
     <style>
         :root {
             --color-bg: #ffffff;
