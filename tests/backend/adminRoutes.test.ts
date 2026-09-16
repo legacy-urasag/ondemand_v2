@@ -245,6 +245,31 @@ describe('Admin Protected Routes & Authorization', () => {
     assert.equal((await response.json()).error.code, 'INVALID_LICENSE_DATA');
   });
 
+  it('downloads a PDF with a valid header prefix', async () => {
+    const pdfBytes = Buffer.concat([
+      Buffer.from('%\xE2\xE3\xCF\xD3\n'),
+      Buffer.from('%PDF-1.7 valid license'),
+    ]);
+    const fl = await submissionService.createFreelancerApplication({
+      name: 'PDF előtaggal',
+      email: 'pdf-prefix@test.hu',
+      phone: '+36 30 999 0033',
+      trades: ['Asztalos'],
+      experience: '1-2',
+      areas: '',
+      licenseFileName: 'prefix.pdf',
+      licenseFileType: 'application/pdf',
+      licenseFileBase64: pdfBytes.toString('base64'),
+    });
+
+    const response = await fetch(`${baseUrl}/api/admin/freelancers/${fl.id}/license/download`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), pdfBytes);
+  });
+
   it('falls back to a safe content type for legacy file metadata', async () => {
     const fl = await submissionService.createFreelancerApplication({
       name: 'Régi fájl',

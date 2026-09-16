@@ -2587,10 +2587,12 @@
                         if (licenseFile) {
                             try {
                                 licenseBase64 = await toBase64(licenseFile);
-                                licenseType = licenseFile.type || 'application/octet-stream';
+                                licenseType = licenseFile.type || (/\.pdf$/i.test(licenseFile.name)
+                                    ? 'application/pdf'
+                                    : 'application/octet-stream');
                                 if (licenseType === 'application/pdf') {
-                                    const pdfHeader = new TextDecoder().decode(await licenseFile.slice(0, 5).arrayBuffer());
-                                    if (pdfHeader !== '%PDF-') {
+                                    const pdfHeader = new TextDecoder().decode(await licenseFile.slice(0, 1024).arrayBuffer());
+                                    if (!pdfHeader.includes('%PDF-')) {
                                         throw new Error('A kiválasztott fájl nem érvényes PDF.');
                                     }
                                 }

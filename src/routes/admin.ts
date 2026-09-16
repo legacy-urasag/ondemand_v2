@@ -207,7 +207,8 @@ adminRouter.get(
     const fileType = supportedFileTypes.has(application.licenseFileType || '')
       ? application.licenseFileType!
       : 'application/octet-stream';
-    if (fileType === 'application/pdf' && !fileBuffer.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
+    const pdfSignature = fileBuffer.indexOf(Buffer.from('%PDF-'));
+    if (fileType === 'application/pdf' && (pdfSignature < 0 || pdfSignature > 1024)) {
       res.status(422).json({
         success: false,
         error: { code: 'INVALID_LICENSE_DATA', message: 'A tárolt PDF fájladata sérült.' },
