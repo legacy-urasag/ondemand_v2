@@ -133,5 +133,27 @@ describe('Public API Routes Integration', () => {
     const body = await res.json();
     assert.equal(body.error?.code, 'VALIDATION_ERROR');
   });
+
+  it('POST /api/forms/freelancer rejects HTML disguised as a PDF', async () => {
+    const payload = {
+      name: 'Hamis PDF',
+      email: 'fake-pdf@example.hu',
+      phone: '+36 70 333 5555',
+      trades: ['Asztalos'],
+      experience: '3-5',
+      licenseFileName: 'engedely.pdf',
+      licenseFileType: 'application/pdf',
+      licenseFileBase64: Buffer.from('<!doctype html><html></html>').toString('base64'),
+    };
+
+    const res = await fetch(`${baseUrl}/api/forms/freelancer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    assert.equal(res.status, 422);
+    assert.equal((await res.json()).error?.code, 'INVALID_LICENSE_DATA');
+  });
 });
 

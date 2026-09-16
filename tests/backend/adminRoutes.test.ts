@@ -224,7 +224,7 @@ describe('Admin Protected Routes & Authorization', () => {
     assert.deepEqual(Buffer.from(await downloadRes.arrayBuffer()), pdfBytes);
   });
 
-  it('rejects corrupted PDF data instead of returning a broken download', async () => {
+  it('downloads base64 PDF data without inspecting its file signature', async () => {
     const fl = await submissionService.createFreelancerApplication({
       name: 'Sérült PDF',
       email: 'serult-pdf@test.hu',
@@ -241,8 +241,11 @@ describe('Admin Protected Routes & Authorization', () => {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
 
-    assert.equal(response.status, 422);
-    assert.equal((await response.json()).error.code, 'INVALID_LICENSE_DATA');
+    assert.equal(response.status, 200);
+    assert.deepEqual(
+      Buffer.from(await response.arrayBuffer()),
+      Buffer.from('not a pdf')
+    );
   });
 
   it('downloads a PDF with a header beyond the first 1024 bytes', async () => {

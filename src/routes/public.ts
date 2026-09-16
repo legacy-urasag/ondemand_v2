@@ -7,6 +7,25 @@ import { submissionService } from '../services/submissionService.js';
 
 export const publicRouter = Router();
 
+function containsPdfSignature(value: string): boolean {
+  const dataUrlMatch = value.match(/^data:[^,]*;base64,(.*)$/s);
+  const rawBase64 = dataUrlMatch?.[1] || value;
+  const normalizedBase64 = rawBase64
+    .replace(/\s/g, '')
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  if (!normalizedBase64 || !/^[A-Za-z0-9+/]*={0,2}$/.test(normalizedBase64)) {
+    return false;
+  }
+
+  const fileBuffer = Buffer.from(
+    normalizedBase64.padEnd(Math.ceil(normalizedBase64.length / 4) * 4, '='),
+    'base64'
+  );
+  return fileBuffer.indexOf(Buffer.from('%PDF-')) >= 0;
+}
+
 // Health Check API
 publicRouter.get('/health', publicApiRateLimiter, (_req, res) => {
   res.json({
@@ -66,6 +85,20 @@ publicRouter.post(
   formSubmissionRateLimiter,
   validateBody(FreelancerFormSchema),
   async (req, res) => {
+    const licenseName = req.body.licenseFileName || '';
+    const isPdf =
+      req.body.licenseFileType === 'application/pdf' || /\.pdf$/i.test(licenseName);
+    if (isPdf && req.body.licenseFileBase64 && !containsPdfSignature(req.body.licenseFileBase64)) {
+      res.status(422).json({
+        success: false,
+        error: {
+          code: 'INVALID_LICENSE_DATA',
+          message: 'A feltöltött fájl nem érvényes PDF dokumentum.',
+        },
+      });
+      return;
+    }
+
     const application = await submissionService.createFreelancerApplication(req.body);
 
     res.status(201).json({
