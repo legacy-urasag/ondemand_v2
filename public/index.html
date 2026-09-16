@@ -2587,15 +2587,11 @@
                         if (licenseFile) {
                             try {
                                 licenseBase64 = await toBase64(licenseFile);
-                                licenseType = licenseFile.type || (/\.pdf$/i.test(licenseFile.name)
+                                const isPdf = /\.pdf$/i.test(licenseFile.name) ||
+                                    ['application/pdf', 'application/x-pdf'].includes(licenseFile.type);
+                                licenseType = isPdf
                                     ? 'application/pdf'
-                                    : 'application/octet-stream');
-                                if (licenseType === 'application/pdf') {
-                                    const pdfHeader = new TextDecoder().decode(await licenseFile.slice(0, 1024).arrayBuffer());
-                                    if (!pdfHeader.includes('%PDF-')) {
-                                        throw new Error('A kiválasztott fájl nem érvényes PDF.');
-                                    }
-                                }
+                                    : licenseFile.type || 'application/octet-stream';
                             } catch (fileErr) {
                                 console.error('Failed to read file as base64:', fileErr);
                                 showErrorNotification(fileErr.message || 'A fájl feldolgozása nem sikerült.');

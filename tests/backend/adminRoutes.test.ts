@@ -245,9 +245,9 @@ describe('Admin Protected Routes & Authorization', () => {
     assert.equal((await response.json()).error.code, 'INVALID_LICENSE_DATA');
   });
 
-  it('downloads a PDF with a valid header prefix', async () => {
+  it('downloads a PDF with a header beyond the first 1024 bytes', async () => {
     const pdfBytes = Buffer.concat([
-      Buffer.from('%\xE2\xE3\xCF\xD3\n'),
+      Buffer.alloc(1024, 0),
       Buffer.from('%PDF-1.7 valid license'),
     ]);
     const fl = await submissionService.createFreelancerApplication({
