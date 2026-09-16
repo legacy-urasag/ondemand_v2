@@ -44,7 +44,9 @@ export function createCorsMiddleware(options?: CorsOptions) {
       return next();
     }
 
-    const isOriginAllowed = allowedOrigins.includes(origin);
+    const isLocalDevelopmentOrigin =
+      !env.isProd() && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    const isOriginAllowed = allowedOrigins.includes(origin) || isLocalDevelopmentOrigin;
 
     if (isOriginAllowed) {
       // Strict matching - NEVER set wildcard '*' when credentials or auth are present

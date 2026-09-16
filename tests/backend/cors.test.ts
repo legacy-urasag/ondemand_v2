@@ -88,6 +88,35 @@ describe('CORS Middleware', () => {
     assert.ok(headers['Access-Control-Max-Age']);
   });
 
+  it('allows localhost development origins on alternate ports', () => {
+    let statusCode = 0;
+    const headers: Record<string, string> = {};
+    let nextCalled = false;
+
+    const req: any = {
+      method: 'OPTIONS',
+      headers: { origin: 'http://localhost:2671' },
+    };
+    const res: any = {
+      setHeader: (k: string, v: string) => {
+        headers[k] = v;
+      },
+      status: (code: number) => {
+        statusCode = code;
+        return res;
+      },
+      end: () => {},
+    };
+
+    cors(req, res, () => {
+      nextCalled = true;
+    });
+
+    assert.equal(statusCode, 204);
+    assert.equal(nextCalled, false);
+    assert.equal(headers['Access-Control-Allow-Origin'], 'http://localhost:2671');
+  });
+
   it('rejects preflight OPTIONS for disallowed origin with 403 Forbidden', () => {
     let statusCode = 0;
     let jsonBody: any = null;

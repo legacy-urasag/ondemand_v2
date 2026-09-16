@@ -434,7 +434,9 @@
     </div>
 
     <script>
-        const API_BASE = window.location.origin;
+        const isLocalPreview = window.location.protocol === 'file:' ||
+            (['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.port !== '3000');
+        const API_BASE = isLocalPreview ? 'http://localhost:3000' : window.location.origin;
         let freelancerOptions = [];
 
         function getToken() {
@@ -714,25 +716,64 @@
                 }
                 const data = await res.json();
                 const file = data.data;
+                const fileUrl = file.fileBase64 && file.fileBase64.startsWith('data:')
+                    ? file.fileBase64
+                    : `data:${file.fileType || 'application/octet-stream'};base64,${file.fileBase64 || ''}`;
 
-                if (file.fileBase64 && file.fileBase64.startsWith('data:image')) {
+                if (file.fileType && file.fileType.startsWith('image/')) {
                     body.innerHTML = `
                         <p style="margin-bottom:12px;"><strong>Fájlnév:</strong> ${escapeHtml(file.fileName)}</p>
-                        <img src="${file.fileBase64}" alt="Engedély" style="max-width:100%; border-radius:8px; border:1px solid var(--color-border);">
+                        <img src="${escapeHtml(fileUrl)}" alt="Engedély" style="max-width:100%; border-radius:8px; border:1px solid var(--color-border);">
+                        <div style="margin-top:16px;">
+                            <button type="button" id="license-download-button" class="btn btn-primary btn-sm">
+                                <i class="fas fa-download"></i> Letöltés
+                            </button>
+                        </div>
                     `;
                 } else {
                     body.innerHTML = `
                         <p><strong>Fájlnév:</strong> ${escapeHtml(file.fileName)}</p>
                         <p><strong>Típus:</strong> ${escapeHtml(file.fileType)}</p>
                         <div style="margin-top:16px;">
-                            <a href="${file.fileBase64 || '#'}" download="${file.fileName}" class="btn btn-primary btn-sm">
+                            <button type="button" id="license-download-button" class="btn btn-primary btn-sm">
                                 <i class="fas fa-download"></i> Letöltés
-                            </a>
+                            </button>
                         </div>
                     `;
                 }
+
+                document.getElementById('license-download-button').addEventListener('click', () => downloadLicenseFile(id, file));
             } catch {
                 body.innerHTML = '<p style="color:var(--color-danger);">Hiba történt a dokumentum lekérése során.</p>';
+            }
+        }
+
+        async function downloadLicenseFile(id) {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/freelancers/${id}/license/download`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (!res.ok) {
+                    const errorBody = await res.json().catch(() => null);
+                    throw new Error(errorBody?.error?.message || 'License download failed');
+                }
+
+                const fileBlob = await res.blob();
+                const blobUrl = URL.createObjectURL(fileBlob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                const disposition = res.headers.get('Content-Disposition') || '';
+                const utf8Filename = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+                const fallbackFilename = disposition.match(/filename="?([^";]+)"?/)?.[1];
+                link.download = utf8Filename
+                    ? decodeURIComponent(utf8Filename)
+                    : fallbackFilename || 'certification';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+            } catch (error) {
+                alert(error.message || 'A dokumentum letöltése nem sikerült.');
             }
         }
 

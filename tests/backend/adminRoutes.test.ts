@@ -199,6 +199,74 @@ describe('Admin Protected Routes & Authorization', () => {
     assert.equal(deleted, undefined);
   });
 
+  it('downloads a freelancer license with its original PDF bytes', async () => {
+    const pdfBytes = Buffer.from('%PDF-1.7 test license');
+    const fl = await submissionService.createFreelancerApplication({
+      name: 'PDF Tesztelő',
+      email: 'pdf@test.hu',
+      phone: '+36 30 888 9900',
+      trades: ['Asztalos'],
+      experience: '3-5',
+      areas: '',
+      licenseFileName: 'engedély',
+      licenseFileType: 'application/pdf',
+      licenseFileBase64: `data:application/pdf;base64,${pdfBytes.toString('base64')}`,
+    });
+
+    const downloadRes = await fetch(`${baseUrl}/api/admin/freelancers/${fl.id}/license/download`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+
+    assert.equal(downloadRes.status, 200);
+    assert.equal(downloadRes.headers.get('content-type'), 'application/pdf');
+    assert.match(downloadRes.headers.get('content-disposition') || '', /attachment; filename="enged_ly\.pdf"/);
+    assert.match(downloadRes.headers.get('content-disposition') || '', /filename\*=UTF-8''enged%C3%A9ly\.pdf/);
+    assert.deepEqual(Buffer.from(await downloadRes.arrayBuffer()), pdfBytes);
+  });
+
+  it('rejects corrupted PDF data instead of returning a broken download', async () => {
+    const fl = await submissionService.createFreelancerApplication({
+      name: 'Sérült PDF',
+      email: 'serult-pdf@test.hu',
+      phone: '+36 30 999 0011',
+      trades: ['Asztalos'],
+      experience: '1-2',
+      areas: '',
+      licenseFileName: 'serult.pdf',
+      licenseFileType: 'application/pdf',
+      licenseFileBase64: Buffer.from('not a pdf').toString('base64'),
+    });
+
+    const response = await fetch(`${baseUrl}/api/admin/freelancers/${fl.id}/license/download`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+
+    assert.equal(response.status, 422);
+    assert.equal((await response.json()).error.code, 'INVALID_LICENSE_DATA');
+  });
+
+  it('falls back to a safe content type for legacy file metadata', async () => {
+    const fl = await submissionService.createFreelancerApplication({
+      name: 'Régi fájl',
+      email: 'regi-file@test.hu',
+      phone: '+36 30 999 0022',
+      trades: ['Asztalos'],
+      experience: '1-2',
+      areas: '',
+      licenseFileName: 'legacy.bin',
+      licenseFileType: 'text/html' as any,
+      licenseFileBase64: Buffer.from('<p>legacy</p>').toString('base64'),
+    });
+
+    const response = await fetch(`${baseUrl}/api/admin/freelancers/${fl.id}/license/download`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'application/octet-stream');
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), Buffer.from('<p>legacy</p>'));
+  });
+
   it('rejects invalid ID format with 400 Bad Request to protect against IDOR/injection', async () => {
     const res = await fetch(`${baseUrl}/api/admin/customers/../../etc/passwd`, {
       headers: { Authorization: `Bearer ${adminToken}` },

@@ -169,6 +169,69 @@ adminRouter.get(
   }
 );
 
+// Download the original freelancer license document
+adminRouter.get(
+  '/freelancers/:id/license/download',
+  validateParams(IdParamSchema),
+  async (req, res) => {
+    const application = await submissionService.getFreelancerApplicationById(req.params.id);
+
+    if (!application || !application.licenseFileBase64) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'LICENSE_NOT_FOUND', message: 'Nem található letölthető engedély.' },
+      });
+      return;
+    }
+
+    const dataUrlMatch = application.licenseFileBase64.match(/^data:[^,]*;base64,(.*)$/s);
+    const rawBase64 = dataUrlMatch?.[1] || application.licenseFileBase64;
+    const base64 = rawBase64.replace(/\s/g, '').replace(/-/g, '+').replace(/_/g, '/');
+    const paddedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(paddedBase64)) {
+      res.status(422).json({
+        success: false,
+        error: { code: 'INVALID_LICENSE_DATA', message: 'Az engedély fájladata sérült.' },
+      });
+      return;
+    }
+
+    const fileBuffer = Buffer.from(paddedBase64, 'base64');
+    const supportedFileTypes = new Set([
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'application/pdf',
+      'application/octet-stream',
+    ]);
+    const fileType = supportedFileTypes.has(application.licenseFileType || '')
+      ? application.licenseFileType!
+      : 'application/octet-stream';
+    if (fileType === 'application/pdf' && !fileBuffer.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
+      res.status(422).json({
+        success: false,
+        error: { code: 'INVALID_LICENSE_DATA', message: 'A tárolt PDF fájladata sérült.' },
+      });
+      return;
+    }
+    let fileName = (application.licenseFileName || 'license')
+      .replace(/[\r\n"\\]/g, '')
+      .trim() || 'license';
+    if (fileType === 'application/pdf' && !/\.pdf$/i.test(fileName)) {
+      fileName += '.pdf';
+    }
+    const asciiFileName = fileName.replace(/[^\x20-\x7E]/g, '_');
+
+    res.setHeader('Content-Type', fileType);
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${asciiFileName}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+    );
+    res.end(fileBuffer);
+  }
+);
+
 // Update freelancer application status
 adminRouter.patch(
   '/freelancers/:id/status',

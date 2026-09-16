@@ -2120,7 +2120,10 @@
         }
 
         // Backend API & Google Sheets fallback integration
-        const API_BASE_URL = (window.__APP_CONFIG__ && window.__APP_CONFIG__.apiUrl) || window.location.origin;
+        const isLocalPreview = window.location.protocol === 'file:' ||
+            (['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.port !== '3000');
+        const API_BASE_URL = (window.__APP_CONFIG__ && window.__APP_CONFIG__.apiUrl) ||
+            (isLocalPreview ? 'http://localhost:3000' : window.location.origin);
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjV8qzAtwds6DwG7nyjRaMrGA1OhuuRHsLniIWK3FQGj7IDl5USDuZxtcF-Jv6a447LQ/exec';
 
         // Dynamic Services Loading and Pre-Selection
@@ -2585,8 +2588,16 @@
                             try {
                                 licenseBase64 = await toBase64(licenseFile);
                                 licenseType = licenseFile.type || 'application/octet-stream';
+                                if (licenseType === 'application/pdf') {
+                                    const pdfHeader = new TextDecoder().decode(await licenseFile.slice(0, 5).arrayBuffer());
+                                    if (pdfHeader !== '%PDF-') {
+                                        throw new Error('A kiválasztott fájl nem érvényes PDF.');
+                                    }
+                                }
                             } catch (fileErr) {
                                 console.error('Failed to read file as base64:', fileErr);
+                                showErrorNotification(fileErr.message || 'A fájl feldolgozása nem sikerült.');
+                                throw fileErr;
                             }
                         }
 
