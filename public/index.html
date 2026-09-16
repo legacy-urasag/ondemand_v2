@@ -1244,24 +1244,12 @@
                 <div class="service-card" style="background:white; padding:20px; border-radius:12px; border:1px solid #e5e7eb; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between;">
                     <div>
                         <div style="width:40px; height:40px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:12px;">
-                            <i class="fas fa-faucet-drip"></i>
+                            <i class="fas fa-droplet"></i>
                         </div>
                         <h3 style="font-size:17px; margin-bottom:6px;">Vízvezetékszerelő</h3>
                         <p style="font-size:13px; color:#64748b; margin-bottom:14px;">Csőtörés elhárítás, csaptelep csere, duguláselhárítás, szaniter.</p>
                     </div>
                     <button class="btn btn-outline btn-sm" onclick="selectServiceAndScroll('Vízvezetékszerelő')" style="width:100%; justify-content:center;">
-                        Ajánlatkérés <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-                <div class="service-card" style="background:white; padding:20px; border-radius:12px; border:1px solid #e5e7eb; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between;">
-                    <div>
-                        <div style="width:40px; height:40px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:12px;">
-                            <i class="fas fa-snowflake"></i>
-                        </div>
-                        <h3 style="font-size:17px; margin-bottom:6px;">Klímaszerelő</h3>
-                        <p style="font-size:13px; color:#64748b; margin-bottom:14px;">Klíma telepítés, karbantartás, tisztítás, hibakeresés.</p>
-                    </div>
-                    <button class="btn btn-outline btn-sm" onclick="selectServiceAndScroll('Klímaszerelő')" style="width:100%; justify-content:center;">
                         Ajánlatkérés <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
@@ -1383,13 +1371,7 @@
                                     <label class="checkbox-item"><input type="checkbox" value="Fűtésszerelő (vagy gépész)"><span>Fűtésszerelő (vagy gépész)</span></label>
                                     <label class="checkbox-item"><input type="checkbox" value="Festő-mázoló"><span>Festő-mázoló</span></label>
                                     <label class="checkbox-item"><input type="checkbox" value="Lakatos"><span>Lakatos</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Hegesztő"><span>Hegesztő</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Kertépítő"><span>Kertépítő</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Épületgépész"><span>Épületgépész</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Klímaszerelő"><span>Klímaszerelő</span></label>
                                     <label class="checkbox-item"><input type="checkbox" value="Asztalos"><span>Asztalos</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Szigetelő"><span>Szigetelő</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Nyílászáró beépítő"><span>Nyílászáró beépítő</span></label>
                                 </div>
                             </div>
                             <p class="form-note" id="job-type-error" style="display:none; color:#dc2626; margin-top:6px;">Válasszon legalább egy munka típust.</p>
@@ -1445,13 +1427,7 @@
                                     <label class="checkbox-item"><input type="checkbox" value="Fűtésszerelő (vagy gépész)"><span>Fűtésszerelő (vagy gépész)</span></label>
                                     <label class="checkbox-item"><input type="checkbox" value="Festő-mázoló"><span>Festő-mázoló</span></label>
                                     <label class="checkbox-item"><input type="checkbox" value="Lakatos"><span>Lakatos</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Hegesztő"><span>Hegesztő</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Kertépítő"><span>Kertépítő</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Épületgépész"><span>Épületgépész</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Klímaszerelő"><span>Klímaszerelő</span></label>
                                     <label class="checkbox-item"><input type="checkbox" value="Asztalos"><span>Asztalos</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Szigetelő"><span>Szigetelő</span></label>
-                                    <label class="checkbox-item"><input type="checkbox" value="Nyílászáró beépítő"><span>Nyílászáró beépítő</span></label>
                                 </div>
                             </div>
                             <p class="form-note" id="trade-error" style="display:none; color:#dc2626; margin-top:6px;">Válasszon legalább egy szakmát.</p>
@@ -2160,20 +2136,14 @@
 
                 const iconMap = {
                     'Villanyszerelő': 'fa-bolt',
-                    'Vízvezetékszerelő': 'fa-faucet-drip',
+                    'Vízvezetékszerelő': 'fa-droplet',
                     'Ács': 'fa-hammer',
                     'Tetőfedő': 'fa-house-chimney',
-                    'Gázszerelő': 'fa-fire-burner',
+                    'Gázszerelő': 'fa-fire',
                     'Fűtésszerelő (vagy gépész)': 'fa-temperature-high',
                     'Festő-mázoló': 'fa-paint-roller',
                     'Lakatos': 'fa-key',
-                    'Hegesztő': 'fa-shield-halved',
-                    'Kertépítő': 'fa-tree',
-                    'Épületgépész': 'fa-gears',
-                    'Klímaszerelő': 'fa-snowflake',
                     'Asztalos': 'fa-chair',
-                    'Szigetelő': 'fa-trowel-bricks',
-                    'Nyílászáró beépítő': 'fa-door-open'
                 };
 
                 grid.innerHTML = result.data.map(service => {

@@ -9,13 +9,7 @@ export const VALID_JOB_TYPES = [
   'Fűtésszerelő (vagy gépész)',
   'Festő-mázoló',
   'Lakatos',
-  'Hegesztő',
-  'Kertépítő',
-  'Épületgépész',
-  'Klímaszerelő',
   'Asztalos',
-  'Szigetelő',
-  'Nyílászáró beépítő',
 ] as const;
 
 export const VALID_URGENCY_LEVELS = ['emergency', 'urgent', 'normal', 'within_month'] as const;

@@ -120,7 +120,7 @@ describe('End-to-End Smoke Tests: Core User Flows & Platform Security', () => {
       name: 'Horváth Gábor',
       email: 'horvath.gabor@szaki.hu',
       phone: '+36 20 444 5566',
-      trades: ['Villanyszerelő', 'Klímaszerelő'],
+      trades: ['Villanyszerelő', 'Asztalos'],
       experience: '6-10',
       areas: 'II., III., XI. kerület',
       licenseFileName: 'villanyszerelo_mesterlevel.pdf',

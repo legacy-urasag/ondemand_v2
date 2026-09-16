@@ -106,7 +106,7 @@ describe('Validation: FreelancerFormSchema', () => {
     name: 'Szabó Péter',
     email: 'szabo.peter@mester.hu',
     phone: '+36 20 987 6543',
-    trades: ['Villanyszerelő', 'Klímaszerelő'],
+    trades: ['Villanyszerelő', 'Asztalos'],
     experience: '6-10',
     areas: 'V., VI., VII. kerület',
     licenseFileName: 'engedely.pdf',
