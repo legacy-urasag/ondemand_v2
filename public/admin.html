@@ -131,6 +131,7 @@
             transition: border 0.2s;
         }
         .form-control:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .assignment-select { min-width: 180px; padding: 6px 10px; font-size: 12px; }
         .alert-error {
             background: #fef2f2;
             border: 1px solid #fecaca;
@@ -318,10 +319,11 @@
                                     <th>Szakma</th>
                                     <th>Sürgősség</th>
                                     <th>Dátum</th>
+                                    <th>Hozzárendelt szakember</th>
                                 </tr>
                             </thead>
                             <tbody id="customers-table-body">
-                                <tr><td colspan="7" style="text-align: center; color: var(--color-muted);">Betöltés...</td></tr>
+                                <tr><td colspan="8" style="text-align: center; color: var(--color-muted);">Betöltés...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -374,6 +376,7 @@
 
     <script>
         const API_BASE = window.location.origin;
+        let freelancerOptions = [];
 
         function getToken() {
             return sessionStorage.getItem('ondemand_token');
@@ -413,14 +416,14 @@
             }
         }
 
-        function showDashboard(user) {
+        async function showDashboard(user) {
             document.getElementById('login-view').style.display = 'none';
             document.getElementById('dashboard-view').style.display = 'block';
             document.getElementById('auth-controls').style.display = 'flex';
             document.getElementById('current-user-badge').innerHTML = `<i class="fas fa-user-shield"></i> ${user.username} (${user.role})`;
             loadStats();
+            await loadFreelancers();
             loadCustomers();
-            loadFreelancers();
         }
 
         function showLogin() {
@@ -516,7 +519,7 @@
                 const items = body.data;
 
                 if (items.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--color-muted);">Nincs megjeleníthető ügyfél bejelentés.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--color-muted);">Nincs megjeleníthető ügyfél bejelentés.</td></tr>';
                     return;
                 }
 
@@ -529,10 +532,16 @@
                         <td>${escapeHtml(c.jobTypes.join(', '))}</td>
                         <td><span class="badge badge-${c.urgency}">${c.urgency}</span></td>
                         <td>${new Date(c.createdAt).toLocaleDateString('hu-HU')}</td>
+                        <td>
+                            <select class="form-control assignment-select" aria-label="Szakember hozzárendelése" onchange="assignCustomer('${escapeHtml(c.id)}', this.value)">
+                                <option value="">Nincs hozzárendelve</option>
+                                ${freelancerOptions.map(f => `<option value="${escapeHtml(f.id)}" ${c.assignedFreelancerId === f.id ? 'selected' : ''}>${escapeHtml(f.name)}</option>`).join('')}
+                            </select>
+                        </td>
                     </tr>
                 `).join('');
             } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--color-danger);">Hiba az adatok betöltésekor.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--color-danger);">Hiba az adatok betöltésekor.</td></tr>';
             }
         }
 
@@ -546,6 +555,7 @@
                 if (!res.ok) return;
                 const body = await res.json();
                 const items = body.data;
+                freelancerOptions = items.filter(f => f.status === 'approved');
 
                 if (items.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--color-muted);">Nincs megjeleníthető szakember jelentkezés.</td></tr>';
@@ -582,6 +592,10 @@
         }
 
         async function updateFreelancerStatus(id, status) {
+            if (status === 'rejected' && !window.confirm('Biztosan elutasítja és törli ezt a szakember-jelentkezést? Ez a művelet nem vonható vissza.')) {
+                return;
+            }
+
             try {
                 const res = await fetch(`${API_BASE}/api/admin/freelancers/${id}/status`, {
                     method: 'PATCH',
@@ -599,6 +613,28 @@
                 }
             } catch {
                 alert('Hálózati hiba a státusz módosításakor.');
+            }
+        }
+
+        async function assignCustomer(customerId, freelancerId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/customers/${customerId}/assignment`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ freelancerId: freelancerId || null })
+                });
+
+                if (!res.ok) {
+                    const body = await res.json().catch(() => ({}));
+                    alert(body?.error?.message || 'Az ügyfél hozzárendelése nem sikerült.');
+                    loadCustomers();
+                }
+            } catch {
+                alert('Hálózati hiba a hozzárendelés mentésekor.');
+                loadCustomers();
             }
         }
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
 import { validateBody, validateParams } from '../middleware/validate.js';
-import { IdParamSchema, UpdateStatusSchema } from '../shared/schemas.js';
+import { AssignCustomerSchema, IdParamSchema, UpdateStatusSchema } from '../shared/schemas.js';
 import { submissionService } from '../services/submissionService.js';
 
 export const adminRouter = Router();
@@ -59,6 +59,40 @@ adminRouter.get(
       success: true,
       data: inquiry,
     });
+  }
+);
+
+// Assign or unassign a customer inquiry to an approved freelancer
+adminRouter.patch(
+  '/customers/:id/assignment',
+  requireRole('admin', 'operator'),
+  validateParams(IdParamSchema),
+  validateBody(AssignCustomerSchema),
+  async (req, res) => {
+    const customer = await submissionService.getCustomerInquiryById(req.params.id);
+
+    if (!customer) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'CUSTOMER_NOT_FOUND', message: 'Az ügyfél kérelme nem található.' },
+      });
+      return;
+    }
+
+    const freelancerId = req.body.freelancerId as string | null;
+    if (freelancerId) {
+      const freelancer = await submissionService.getFreelancerApplicationById(freelancerId);
+      if (!freelancer || freelancer.status !== 'approved') {
+        res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_FREELANCER', message: 'Csak jóváhagyott szakemberhez rendelhet ügyfelet.' },
+        });
+        return;
+      }
+    }
+
+    const updated = await submissionService.assignCustomer(req.params.id, freelancerId);
+    res.json({ success: true, message: 'Az ügyfél hozzárendelése frissítve.', data: updated });
   }
 );
 

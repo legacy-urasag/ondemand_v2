@@ -165,6 +165,14 @@ export const UpdateStatusSchema = z.object({
 
 export type UpdateStatusData = z.infer<typeof UpdateStatusSchema>;
 
+export const AssignCustomerSchema = z.object({
+  freelancerId: z
+    .string()
+    .trim()
+    .regex(/^[a-zA-Z0-9_-]{6,64}$/, 'Érvénytelen szakember-azonosító.')
+    .nullable(),
+});
+
 // ID parameter validation schema (prevents path traversal / injection)
 export const IdParamSchema = z.object({
   id: z

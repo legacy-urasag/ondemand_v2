@@ -5,6 +5,7 @@ import { getDb } from '../config/mongodb.js';
 export interface CustomerInquiry extends CustomerFormData {
   id: string;
   status: 'pending' | 'contacted' | 'completed';
+  assignedFreelancerId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -60,6 +61,26 @@ export class SubmissionService {
       .findOne({ id });
 
     return record ?? undefined;
+  }
+
+  async assignCustomer(
+    customerId: string,
+    freelancerId: string | null
+  ): Promise<CustomerInquiry | undefined> {
+    const db = await getDb();
+    const customers = db.collection<CustomerInquiry>('customerInquiries');
+
+    const updatedAt = new Date().toISOString();
+
+    const result = await customers.findOneAndUpdate(
+      { id: customerId },
+      freelancerId
+        ? { $set: { assignedFreelancerId: freelancerId, updatedAt } }
+        : { $set: { updatedAt }, $unset: { assignedFreelancerId: '' } },
+      { returnDocument: 'after' }
+    );
+
+    return result ?? undefined;
   }
 
   async createFreelancerApplication(
@@ -119,6 +140,14 @@ export class SubmissionService {
     note?: string
   ): Promise<FreelancerApplication | undefined> {
     const db = await getDb();
+
+    if (status === 'rejected') {
+      const result = await db
+        .collection<FreelancerApplication>('freelancerApplications')
+        .findOneAndDelete({ id });
+
+      return result ?? undefined;
+    }
 
     const update: Record<string, unknown> = {
       status,

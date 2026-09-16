@@ -78,13 +78,14 @@ describe('Admin Protected Routes & Authorization', () => {
   });
 
   it('allows authenticated admin to view inquiries and applications', async () => {
-    submissionService.createCustomerInquiry({
+    await submissionService.createCustomerInquiry({
       name: 'Teszt Ügyfél',
       email: 'ugyfel@test.hu',
       phone: '+36 30 111 2222',
       location: 'Budapest, I. kerület',
       jobTypes: ['Villanyszerelő'],
       urgency: 'normal',
+      description: '',
     });
 
     const res = await fetch(`${baseUrl}/api/admin/customers`, {
@@ -96,13 +97,61 @@ describe('Admin Protected Routes & Authorization', () => {
     assert.ok(body.data.length >= 1);
   });
 
+  it('assigns and unassigns a customer to an approved freelancer', async () => {
+    const customer = await submissionService.createCustomerInquiry({
+      name: 'Hozzárendelt Ügyfél',
+      email: 'hozzarendelt@test.hu',
+      phone: '+36 30 222 3344',
+      location: 'Budapest, II. kerület',
+      jobTypes: ['Vízvezetékszerelő'],
+      urgency: 'urgent',
+      description: '',
+    });
+    const freelancer = await submissionService.createFreelancerApplication({
+      name: 'Jóváhagyott Szakember',
+      email: 'jovahagyott@test.hu',
+      phone: '+36 20 333 4455',
+      trades: ['Vízvezetékszerelő'],
+      experience: '6-10',
+      areas: '',
+      licenseFileName: 'Nincs fájl',
+    });
+    await submissionService.updateFreelancerStatus(freelancer.id, 'approved');
+
+    const assignRes = await fetch(`${baseUrl}/api/admin/customers/${customer.id}/assignment`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ freelancerId: freelancer.id }),
+    });
+
+    assert.equal(assignRes.status, 200);
+    assert.equal((await assignRes.json()).data.assignedFreelancerId, freelancer.id);
+
+    const unassignRes = await fetch(`${baseUrl}/api/admin/customers/${customer.id}/assignment`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ freelancerId: null }),
+    });
+
+    assert.equal(unassignRes.status, 200);
+    assert.equal((await unassignRes.json()).data.assignedFreelancerId, undefined);
+  });
+
   it('allows operator to update freelancer status', async () => {
-    const fl = submissionService.createFreelancerApplication({
+    const fl = await submissionService.createFreelancerApplication({
       name: 'Mester József',
       email: 'mester.jozsef@test.hu',
       phone: '+36 20 555 6677',
       trades: ['Villanyszerelő'],
       experience: '3-5',
+      areas: '',
+      licenseFileName: 'Nincs fájl',
     });
 
     const updateRes = await fetch(`${baseUrl}/api/admin/freelancers/${fl.id}/status`, {
@@ -121,6 +170,33 @@ describe('Admin Protected Routes & Authorization', () => {
     const body = await updateRes.json();
     assert.equal(body.success, true);
     assert.equal(body.data.status, 'approved');
+  });
+
+  it('deletes a freelancer application after rejection', async () => {
+    const fl = await submissionService.createFreelancerApplication({
+      name: 'Elutasítandó Mester',
+      email: 'elutasitando@test.hu',
+      phone: '+36 30 777 8899',
+      trades: ['Asztalos'],
+      experience: '1-2',
+      areas: '',
+      licenseFileName: 'Nincs fájl',
+    });
+
+    const rejectRes = await fetch(`${baseUrl}/api/admin/freelancers/${fl.id}/status`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'rejected' }),
+    });
+
+    assert.equal(rejectRes.status, 200);
+    assert.equal((await rejectRes.json()).data.id, fl.id);
+
+    const deleted = await submissionService.getFreelancerApplicationById(fl.id);
+    assert.equal(deleted, undefined);
   });
 
   it('rejects invalid ID format with 400 Bad Request to protect against IDOR/injection', async () => {
