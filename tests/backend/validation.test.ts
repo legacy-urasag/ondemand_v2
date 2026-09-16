@@ -85,6 +85,14 @@ describe('Validation: CustomerFormSchema', () => {
     assert.equal(parsed.success, false);
   });
 
+  it('accepts the within-month urgency level', () => {
+    const parsed = CustomerFormSchema.safeParse({
+      ...validCustomer,
+      urgency: 'within_month',
+    });
+    assert.equal(parsed.success, true);
+  });
+
   it('rejects empty name and name shorter than 2 characters', () => {
     const parsed1 = CustomerFormSchema.safeParse({ ...validCustomer, name: '' });
     const parsed2 = CustomerFormSchema.safeParse({ ...validCustomer, name: 'A' });

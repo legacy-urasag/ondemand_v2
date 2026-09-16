@@ -18,7 +18,7 @@ export const VALID_JOB_TYPES = [
   'Nyílászáró beépítő',
 ] as const;
 
-export const VALID_URGENCY_LEVELS = ['emergency', 'urgent', 'normal'] as const;
+export const VALID_URGENCY_LEVELS = ['emergency', 'urgent', 'normal', 'within_month'] as const;
 export const VALID_EXPERIENCE_LEVELS = ['1-2', '3-5', '6-10', '10+'] as const;
 export const VALID_SUBMISSION_STATUS = ['pending', 'contacted', 'approved', 'rejected', 'completed'] as const;
 
